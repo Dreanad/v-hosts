@@ -6,10 +6,6 @@ V-hosts vous permet de créer un hosts qui seras associé à un virtualhost (apa
 # Installation
 - Télécharger l'archive du projet sur votre machine et aller décompresser le.
 - Entré dans le répertoire v-hosts
-``` bash
-cd v-hosts
-```
+<code>cd v-hosts</code>
 - Lancez l'installation
-``` bash
-./install.sh
-```
+<code>./install.sh </code>
