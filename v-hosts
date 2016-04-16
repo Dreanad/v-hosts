@@ -10,10 +10,6 @@ addVirtualHost () {
 
 
 
-
-
-
-
 echo "***********************************************"
 echo "********** Ajout d'un nouvel hôte *************"
 echo "***********************************************"
@@ -59,22 +55,31 @@ done
 echo "***********************************************"
 echo "**************** Confirmation *****************"
 echo "***********************************************"
-echo "***************                               	*"
-echo "**** Hosts ****                               	*"
-echo "***************                               	*"
-echo "*   $adresse    $hote				*"
-echo "***************                               	*"
-echo "* VirtualHost *                               	*"
-echo "***************                               	*"
-echo "*   path:         $path				*"
-echo "*   ServerName:   $serverName			*"
-echo "*   ServerAlias:  $serverAlias			*"
-echo "*   ServerAdmin:  $serverAdmin			*"
-echo "*                                          	*"
-echo "***********************************************"
+echo "Hosts =>"
+echo "$adresse    $hote"
+echo "VirtualHost =>"
+echo "path:         $path"
+echo "ServerName:   $serverName"
+echo "ServerAlias:  $serverAlias"
+echo "ServerAdmin:  $serverAdmin"
+
+
 read -p "Confirmer les informations [y/n]" confirm
 if [ confirm=="y" ]
 then
-	echo "information validées"
+	addHost $adresse $hote
+	addVirtualHost $path $serverName $serverAlias $serverAdmin
+else
+	exit
 fi 
-
+read -p "Créer un répertoire $hote dans /var/www ? [y/n]" createDir
+if [ $serverName=="y" ]
+then
+        sudo mkdir /var/www/$hote
+fi
+read -p "Initialiser un repository git ? [y/n]" gitInit
+if [ gitInit=="y" ]
+then
+	cd /var/www/$hote
+	sudo git init
+fi
