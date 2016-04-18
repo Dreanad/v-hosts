@@ -14,6 +14,11 @@ addVirtualHost () {
   sudo sed -i -e "s,SERVERADMIN,$5,g" "apache/$baseNameHote.conf"
   sudo mv "apache/$baseNameHote.conf" "/etc/apache2/sites-available/"
 }
+# v-hosts require root access
+if [ "$EUID" -ne 0 ]
+  then echo "V-hosts require root access, please use sudo to run v-hosts"
+  exit
+fi
 # /functions
 # start script add new host in /etc/hosts
 echo "***********************************************"
@@ -57,9 +62,9 @@ fi
 serverAlias=()
 while [ 1 ];do
   read -p "[ServerAlias] (ex: www.$hote) => " serverAliasName
-  if [ -z serverAliasName ]
+  if [ ! -z $serverAliasName ]
   then
-    serverAlias+=serverAliasName
+    serverAlias+="$serverAliasName "
   else
     break
   fi
@@ -80,7 +85,8 @@ echo "VirtualHost =>"
 echo "DocumentRoot: $documentRoot"
 echo "Directory:    $directory"
 echo "ServerName:   $serverName"
-echo "ServerAlias:  ${serverAlias[*]}"
+arrServerAliasName=${serverAlias[@]}
+echo "ServerAlias:  $arrServerAliasName"
 echo "ServerAdmin:  $serverAdmin"
 
 while [ 1 ];do
@@ -105,15 +111,13 @@ while [ 1 ];do
   read -p "Create folder $documentRoot ? [y/n]" createDir
   case "$createDir" in
     OUI | Oui | oui | o | YES | Yes | yes | y )
-      sudo mkdir $documentRoot
-      sudo touch "$documentRoot/index.html"
-      sudo echo "<h1>Thank you to use v-host !</h1> You're site is enable :)" >> "$documentRoot/index.html"
+      sudo mkdir $documentRoot && touch "$documentRoot/index.html"
+      echo  "<h1>Thank you to use v-host !</h1>" >> $documentRoot/index.html
       while [ 1 ];do
         read -p "Initialiser un repository git ? [y/n]" gitInit
         case "$gitInit" in
           OUI | Oui | oui | o | YES | Yes | yes | y )
-            sudo cd $documentRoot
-            sudo git init
+             cd $documentRoot && sudo git init
             break
           ;;
           NON | Non | non | NO | No | no | n )
