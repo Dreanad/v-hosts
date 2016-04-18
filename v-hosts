@@ -1,85 +1,154 @@
 #!/bin/sh
-
+# functions
 addHost () {
-        echo "hello"
+  echo -e "$1\t$2" | sudo tee --append /etc/hosts
 }
 
 addVirtualHost () {
-        echo "je suis un test $1"
+  baseNameHote=${3%.*}
+  sudo cp "apache/default.conf" "apache/$baseNameHote.conf"
+  sudo sed -i -e "s,DOCUMENTROOT,$1,g" "apache/$baseNameHote.conf"
+  sudo sed -i -e "s,DIRECTORY,$2,g" "apache/$baseNameHote.conf"
+  sudo sed -i -e "s,SERVERNAME,$3,g" "apache/$baseNameHote.conf"
+  sudo sed -i -e "s,SERVERALIAS,$4,g" "apache/$baseNameHote.conf"
+  sudo sed -i -e "s,SERVERADMIN,$5,g" "apache/$baseNameHote.conf"
+  sudo mv "apache/$baseNameHote.conf" "/etc/apache2/sites-available/"
 }
-
-
-
+# /functions
+# start script add new host in /etc/hosts
 echo "***********************************************"
-echo "********** Ajout d'un nouvel hôte *************"
+echo "************* Add the new host ****************"
 echo "***********************************************"
-read -p "Entrez l'adresse à rediriger [127.0.0.1]: " adresse
+# Adresse to redirect
+read -p "Adresse to redirect [127.0.0.1]: " adresse
 if [ -z $adresse ]
 then
         adresse='127.0.0.1'
 fi
-read -p "Entrez un hôte (ex: example.com): " hote
+# Hostname
+read -p "Hostname (ex: example.com): " hote
 while [ -z $hote ]
 do
-	read -p "Veuillez entrer une valeur pour l'hôte: " hote
+	read -p "Hostname can't be empty, please enter the hostname " hote
 done
-
+# Add the virtual host
 echo "***********************************************"
-echo "************* Ajout du virtualhost ************"
+echo "************* Add the virtual host ************"
 echo "***********************************************"
-
-read -p "[DocumentRoot] (ex: /var/www/projet) => " path
-while [ -z $path ]
-do
-	read -p "[DocumentRoot] => " path
+# Path to documentRoot
+read -p "[DocumentRoot] [/var/www/$hote] => " documentRoot
+if [ -z $documentRoot ]
+then
+  documentRoot="/var/www/$hote"
+fi
+# Path to directory
+read -p "[Directory] [$documentRoot] => " directory
+if [ -z $directory ]
+then
+  directory="/var/www/$hote"
+fi
+# ServerName
+read -p "[ServerName] [$hote] => " serverName
+if [ -z $serverName ]
+then
+  serverName="$hote"
+fi
+# ServerAlias type array for multiple alias
+serverAlias=()
+while [ 1 ];do
+  read -p "[ServerAlias] (ex: www.$hote) => " serverAliasName
+  if [ -z serverAliasName ]
+  then
+    serverAlias+=serverAliasName
+  else
+    break
+  fi
 done
-
-read -p "[ServerName] (ex: example.com) => " serverName
-while [ -z $serverName ]
-do
-	read -p "[ServerName] => " serverName
-done
-
-read -p "[ServerAlias] (ex: www.example.com) => " serverAlias
-while [ -z $serverName ]
-do
-        read -p "[ServerAlias] => " serverAlias
-done
-
-read -p "[ServerAdmin] (ex: admin@example.com) => " serverAdmin
-while [ -z $serverName ]
-do
-        read -p "[ServerAdmin] => " serverAdmin
-done
-
+# ServerAdmin mail adress
+read -p "[ServerAdmin] [admin@$hote] => " serverAdmin
+if [ -z $serverAdmin ]
+then
+  serverAdmin="admin@$hote"
+fi
+# Confirmation
 echo "***********************************************"
 echo "**************** Confirmation *****************"
 echo "***********************************************"
 echo "Hosts =>"
 echo "$adresse    $hote"
 echo "VirtualHost =>"
-echo "path:         $path"
+echo "DocumentRoot: $documentRoot"
+echo "Directory:    $directory"
 echo "ServerName:   $serverName"
-echo "ServerAlias:  $serverAlias"
+echo "ServerAlias:  ${serverAlias[*]}"
 echo "ServerAdmin:  $serverAdmin"
 
-
-read -p "Confirmer les informations [y/n]" confirm
-if [ confirm=="y" ]
-then
-	addHost $adresse $hote
-	addVirtualHost $path $serverName $serverAlias $serverAdmin
-else
-	exit
-fi 
-read -p "Créer un répertoire $hote dans /var/www ? [y/n]" createDir
-if [ $serverName=="y" ]
-then
-        sudo mkdir /var/www/$hote
-fi
-read -p "Initialiser un repository git ? [y/n]" gitInit
-if [ gitInit=="y" ]
-then
-	cd /var/www/$hote
-	sudo git init
-fi
+while [ 1 ];do
+  read -p "Confirmation [y/n]" confirm
+  case "$confirm" in
+    OUI | Oui | oui | o | YES | Yes | yes | y )
+      addHost "$adresse" "$hote"
+	    addVirtualHost "$documentRoot" "$directory" "$serverName" "$serverAlias" "$serverAdmin"
+      break
+    ;;
+    NON | Non | non | NO | No | no | n )
+      exit 1
+      break
+    ;;
+    *)
+      echo "Unrecognized response, response awaited yes or no "
+    ;;
+  esac
+done
+# to create folder in documentRoot place and initialize a git empty project
+while [ 1 ];do
+  read -p "Create folder $documentRoot ? [y/n]" createDir
+  case "$createDir" in
+    OUI | Oui | oui | o | YES | Yes | yes | y )
+      sudo mkdir $documentRoot
+      sudo touch "$documentRoot/index.html"
+      sudo echo "<h1>Thank you to use v-host !</h1> You're site is enable :)" >> "$documentRoot/index.html"
+      while [ 1 ];do
+        read -p "Initialiser un repository git ? [y/n]" gitInit
+        case "$gitInit" in
+          OUI | Oui | oui | o | YES | Yes | yes | y )
+            sudo cd $documentRoot
+            sudo git init
+            break
+          ;;
+          NON | Non | non | NO | No | no | n )
+            break
+          ;;
+          *)
+            echo "Unrecognized response, response awaited yes or no "
+          ;;
+        esac
+      done
+      break
+    ;;
+    NON | Non | non | NO | No | no | n )
+      break
+    ;;
+    *)
+      echo "Unrecognized response, response awaited yes or no "
+    ;;
+  esac
+done
+# Enable the conf and restart apache2
+while [ 1 ];do
+  read -p "Do you want to enable the conf and restart Apache2 ? [y/n]" enableAndRestart
+  case "$enableAndRestart" in
+    OUI | Oui | oui | o | YES | Yes | yes | y )
+      baseNameHote=${hote%.*}
+      sudo a2ensite "$baseNameHote.conf"
+      sudo /etc/init.d/apache2 reload
+      break
+    ;;
+    NON | Non | non | NO | No | no | n )
+      break
+    ;;
+    *)
+      echo "Unrecognized response, response awaited yes or no "
+    ;;
+  esac
+done
