@@ -1,7 +1,7 @@
 #!/bin/sh
 # functions
 addHost () {
-  echo -e "$1\t$2" | sudo tee --append /etc/hosts
+  echo -e "$1\t$2" | sudo tee --append /etc/hosts > /dev/null
 }
 
 addVirtualHost () {
@@ -61,10 +61,10 @@ fi
 # ServerAlias type array for multiple alias
 serverAlias=()
 while [ 1 ];do
-  read -p "[ServerAlias] (ex: www.$hote) => " serverAliasName
+  read -p "[ServerAlias] (ex: www or empty to continue) => " serverAliasName
   if [ ! -z $serverAliasName ]
   then
-    serverAlias+="$serverAliasName "
+    serverAlias+="$serverAliasName.$hote "
   else
     break
   fi
@@ -81,19 +81,29 @@ echo "**************** Confirmation *****************"
 echo "***********************************************"
 echo "Hosts =>"
 echo "$adresse    $hote"
+for element in ${serverAlias[@]}
+do
+  echo "$adresse    $element"
+done
 echo "VirtualHost =>"
 echo "DocumentRoot: $documentRoot"
 echo "Directory:    $directory"
 echo "ServerName:   $serverName"
-arrServerAliasName=${serverAlias[@]}
-echo "ServerAlias:  $arrServerAliasName"
+echo "ServerAlias:  ${serverAlias[@]}"
 echo "ServerAdmin:  $serverAdmin"
 
 while [ 1 ];do
   read -p "Confirmation [y/n]" confirm
   case "$confirm" in
     OUI | Oui | oui | o | YES | Yes | yes | y )
+      echo -e "# V-hosts pour : $hote" | sudo tee --append /etc/hosts > /dev/null
       addHost "$adresse" "$hote"
+      if [ -n "$serverAlias" ]; then
+        for element in ${serverAlias[@]}
+        do
+          addHost "$adresse" "$element"
+        done
+      fi
 	    addVirtualHost "$documentRoot" "$directory" "$serverName" "$serverAlias" "$serverAdmin"
       break
     ;;
