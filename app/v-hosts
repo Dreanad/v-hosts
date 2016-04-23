@@ -1,4 +1,15 @@
 #!/bin/sh
+
+if [ -f /etc/v-hosts/v-hosts.conf ]
+then
+    . /etc/v-hosts/v-hosts.conf
+else
+    echo "Configuration file /etc/v-hosts/v-hosts.conf not found"
+    exit 1
+fi
+
+
+
 # functions
 addHost () {
   echo -e "$1\t$2" | sudo tee --append /etc/hosts > /dev/null
@@ -128,7 +139,7 @@ while [ 1 ];do
         read -p "Initialiser un repository git ? [y/n]" gitInit
         case "$gitInit" in
           OUI | Oui | oui | o | YES | Yes | yes | y )
-             cd $documentRoot && sudo git init
+            cd $documentRoot && sudo git init
             break
           ;;
           NON | Non | non | NO | No | no | n )
