@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # v-hosts uninstall require root access
 if [ "$(whoami)" != "root" ]
   then

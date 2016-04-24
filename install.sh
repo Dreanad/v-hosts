@@ -8,5 +8,6 @@ fi
 sudo mkdir /etc/v-hosts
 sudo cp app/conf/* /etc/v-hosts
 sudo cp app/v-hosts /usr/bin/
+sudo cp app/uninstall.sh /etc/v-hosts/
 
 echo "V-Hosts is now installed !"

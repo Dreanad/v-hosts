@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 if [ -f /etc/v-hosts/v-hosts.conf ]
 then
@@ -17,13 +17,13 @@ addHost () {
 
 addVirtualHost () {
   baseNameHote=${3%.*}
-  sudo cp "apache/default.conf" "apache/$baseNameHote.conf"
-  sudo sed -i -e "s,DOCUMENTROOT,$1,g" "apache/$baseNameHote.conf"
-  sudo sed -i -e "s,DIRECTORY,$2,g" "apache/$baseNameHote.conf"
-  sudo sed -i -e "s,SERVERNAME,$3,g" "apache/$baseNameHote.conf"
-  sudo sed -i -e "s,SERVERALIAS,$4,g" "apache/$baseNameHote.conf"
-  sudo sed -i -e "s,SERVERADMIN,$5,g" "apache/$baseNameHote.conf"
-  sudo mv "apache/$baseNameHote.conf" "/etc/apache2/sites-available/"
+  sudo cp "/etc/v-hosts/apache-default.conf" "/etc/v-hosts/$baseNameHote.conf"
+  sudo sed -i -e "s,DOCUMENTROOT,$1,g" "/etc/v-hosts/$baseNameHote.conf"
+  sudo sed -i -e "s,DIRECTORY,$2,g" "/etc/v-hosts/$baseNameHote.conf"
+  sudo sed -i -e "s,SERVERNAME,$3,g" "/etc/v-hosts/$baseNameHote.conf"
+  sudo sed -i -e "s,SERVERALIAS,$4,g" "/etc/v-hosts/$baseNameHote.conf"
+  sudo sed -i -e "s,SERVERADMIN,$5,g" "/etc/v-hosts/$baseNameHote.conf"
+  sudo mv "/etc/v-hosts/$baseNameHote.conf" "/etc/apache2/sites-available/"
 }
 # v-hosts require root access
 if [ "$(whoami)" != "root" ]
