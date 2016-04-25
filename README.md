@@ -34,3 +34,7 @@ Il suffit de lancer la commande et de suivre les instructions:
 ````
 sudo v-hosts
 ````
+
+# Amélioration
+Vous pouvez participer à l'amélioration de ce script, toutes les améliorations sont
+bonne à prendre, j'envisage dans le futur d'en faire un manager d'hosts et virtualhost.
