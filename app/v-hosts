@@ -37,10 +37,10 @@ echo "***********************************************"
 echo "************* Add the new host ****************"
 echo "***********************************************"
 # Adresse to redirect
-read -p "Adresse to redirect [127.0.0.1]: " adresse
+read -p "Adresse to redirect [$HOST_ADRESSE]: " adresse
 if [ -z $adresse ]
 then
-        adresse='127.0.0.1'
+        adresse="$HOST_ADRESSE"
 fi
 # Hostname
 read -p "Hostname (ex: example.com): " hote
@@ -53,16 +53,16 @@ echo "***********************************************"
 echo "************* Add the virtual host ************"
 echo "***********************************************"
 # Path to documentRoot
-read -p "[DocumentRoot] [/var/www/$hote] => " documentRoot
+read -p "[DocumentRoot] [$PATH_DEFAULT/$hote] => " documentRoot
 if [ -z $documentRoot ]
 then
-  documentRoot="/var/www/$hote"
+  documentRoot="$PATH_DEFAULT/$hote"
 fi
 # Path to directory
 read -p "[Directory] [$documentRoot] => " directory
 if [ -z $directory ]
 then
-  directory="/var/www/$hote"
+  directory="$PATH_DEFAULT/$hote"
 fi
 # ServerName
 read -p "[ServerName] [$hote] => " serverName
